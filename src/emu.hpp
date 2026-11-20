@@ -1,25 +1,14 @@
 #pragma once
 
+#include "emuStruct.hpp"
+
+#include <algorithm>
 #include <cstdint>
 #include <cstring>
 #include <string>
 #include <vector>
 
-struct NdsHeader
-{
-    std::string title;
-    std::string game_code;
 
-    uint32_t arm9_rom_offset = 0;
-    uint32_t arm9_entry_address = 0;
-    uint32_t arm9_ram_address = 0;
-    uint32_t arm9_size = 0;
-
-    uint32_t arm7_rom_offset = 0;
-    uint32_t arm7_entry_address = 0;
-    uint32_t arm7_ram_address = 0;
-    uint32_t arm7_size = 0;
-};
 
 inline uint32_t read_u32_le(const std::vector<uint8_t> &buf, size_t offset)
 {
@@ -72,4 +61,26 @@ inline bool parse_nds_header(const std::vector<uint8_t> &rom, NdsHeader &out)
     out.arm7_size = read_u32_le(rom, 0x03C);
 
     return true;
+}
+
+inline bool load_binaries_into_main_ram(const std::vector<uint8_t> &rom, const NdsHeader &hdr, NdsMemory &mem)
+{
+    auto copy_segment = [&](uint32_t rom_off, uint32_t ram_addr, uint32_t size, const char *name) -> bool
+    {
+        if (size == 0)
+            return true;
+        if (static_cast<size_t>(rom_off) + static_cast<size_t>(size) > rom.size())
+        {
+            return false;
+        }
+        uint32_t base_offset = ram_addr & NDS_MAIN_RAM_MASK;
+        if (static_cast<size_t>(base_offset) + static_cast<size_t>(size) > mem.main_ram.size())
+        {
+            return false;
+        }
+        std::memcpy(mem.main_ram.data() + base_offset, rom.data() + rom_off, size);
+        (void)name;
+        return true;
+    };
+    return copy_segment(hdr.arm9_rom_offset, hdr.arm9_ram_address, hdr.arm9_size, "ARM9") && copy_segment(hdr.arm7_rom_offset, hdr.arm7_ram_address, hdr.arm7_size, "ARM7");
 }

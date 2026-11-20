@@ -1,4 +1,7 @@
+#include "src/emuStruct.hpp"
 #include "src/emu.hpp"
+#include "src/debug.hpp"
+#include "src/instructionSet.hpp"
 
 #include <fstream>
 #include <iomanip>
@@ -41,18 +44,39 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    std::cout << "Titolo:        " << header.title << "\n";
-    std::cout << "Game Code:     " << header.game_code << "\n";
-    std::cout << std::hex << std::uppercase << std::setfill('0');
-    std::cout << "ARM9 Offset:   0x" << std::setw(8) << header.arm9_rom_offset << "\n";
-    std::cout << "ARM9 RAM Addr: 0x" << std::setw(8) << header.arm9_ram_address << "\n";
-    std::cout << "ARM9 Entry:    0x" << std::setw(8) << header.arm9_entry_address << "\n";
-    std::cout << "ARM9 Size:     0x" << std::setw(8) << header.arm9_size << "\n";
-    std::cout << "ARM7 Offset:   0x" << std::setw(8) << header.arm7_rom_offset << "\n";
-    std::cout << "ARM7 RAM Addr: 0x" << std::setw(8) << header.arm7_ram_address << "\n";
-    std::cout << "ARM7 Entry:    0x" << std::setw(8) << header.arm7_entry_address << "\n";
-    std::cout << "ARM7 Size:     0x" << std::setw(8) << header.arm7_size << "\n";
-    std::cout << std::dec;
+    // stampa_header(header);
+
+    NdsMemory mem;
+    if (!load_binaries_into_main_ram(rom, header, mem))
+    {
+        std::cerr << "Errore: caricamento ARM9/ARM7 in Main RAM fallito.\n";
+        return 1;
+    }
+
+    // stampa_ram_bin(mem, header);
+
+    CpuState cpu{};
+    cpu.r[15] = header.arm9_entry_address;
+
+    constexpr uint64_t max_steps = 100000;
+    uint64_t steps = 0;
+
+    while (steps < max_steps)
+    {
+        ++steps;
+        if (!step_once(cpu, mem))
+        {
+            break;
+        };
+    }
+
+    std::cout << std::dec
+              << "Passi eseguiti: " << steps << "\n"
+              << std::hex << std::uppercase << std::setfill('0')
+              << "PC finale:   0x" << std::setw(8) << cpu.r[15] << "\n"
+              << "LR (R14):    0x" << std::setw(8) << cpu.r[14] << "\n"
+              << "CPSR finale: 0x" << std::setw(8) << cpu.cpsr << "\n"
+              << std::dec;
 
     return 0;
 }
