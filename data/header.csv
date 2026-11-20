@@ -1,0 +1,12 @@
+indirizzo, numeroByte, funzione
+
+0x000, 12, titolo interno del gioco 
+0x00C ,4 , game code
+0x020 ,4 , arm9_rom_offset (dove inizia il codice ARM9 dentro il .nds).
+0x024 ,4 , arm9_entry_address (indirizzo di avvio PC per ARM9).
+0x028 ,4 , arm9_ram_address (indirizzo in memoria dove copiare il blocco ARM9).
+0x02C ,4 , arm9_size (quanti byte leggere per ARM9).
+0x030 ,4 , arm7_rom_offset.
+0x034 ,4 , arm7_entry_address.
+0x038 ,4 , arm7_ram_address.
+0x03C ,4 , arm7_size.

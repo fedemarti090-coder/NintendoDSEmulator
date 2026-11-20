@@ -1,0 +1,10 @@
+Titolo:        HOMEBREW
+Game Code:     ####
+ARM9 Offset:   0x00004000
+ARM9 RAM Addr: 0x02004000
+ARM9 Entry:    0x02004800
+ARM9 Size:     0x002440E4
+ARM7 Offset:   0x00248200
+ARM7 RAM Addr: 0x02380000
+ARM7 Entry:    0x02380000
+ARM7 Size:     0x0000B384
